@@ -1,46 +1,66 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { JsonForms } from '@jsonforms/react';
-import { schema } from './schemas/schema';
-import { uischema } from './schemas/uischema';
-import { 
-  ReadOnlyTextRenderer, readOnlyTextTester,
-  ReadOnlyEnumRenderer, readOnlyEnumTester,
-  ReadOnlyMultiEnumRenderer, readOnlyMultiEnumTester,
-  ReadOnlyCountryPercentRenderer, readOnlyCountryPercentTester
-} from './renderers';
+import { vanillaCells, vanillaRenderers } from '@jsonforms/vanilla-renderers';
 
-const App = () => {
-  const data = {
-    user: {
-      a08: "John Doe",
-      a09: "I am a software engineer with 5 years of experience."
+const schema = {
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      minLength: 1,
     },
-    item: {
-      s01: ["vendor", "subcontractor"],
-      p02: "yes",
-      i01: [
-        { country: "Afghanistan", percent: 50 },
-        { country: "Albania", percent: 50 }
-      ]
-    }
-  };
-
-  return (
-    <div>
-      <h1>Formulaire</h1>
-      <JsonForms
-        schema={schema}
-        uischema={ uischema }
-        data={data}
-        renderers={[
-          { tester: readOnlyTextTester, renderer: ReadOnlyTextRenderer },
-          { tester: readOnlyEnumTester, renderer: ReadOnlyEnumRenderer },
-          { tester: readOnlyMultiEnumTester, renderer: ReadOnlyMultiEnumRenderer },
-          { tester: readOnlyCountryPercentTester, renderer: ReadOnlyCountryPercentRenderer }
-        ]}
-      />
-    </div>
-  );
+    done: {
+      type: 'boolean',
+    },
+    due_date: {
+      type: 'string',
+      format: 'date',
+    },
+    recurrence: {
+      type: 'string',
+      enum: ['Never', 'Daily', 'Weekly', 'Monthly'],
+    },
+  },
+  required: ['name', 'due_date'],
 };
-
-export default App;
+const uischema = {
+  type: 'VerticalLayout',
+  elements: [
+    {
+      type: 'Control',
+      label: false,
+      scope: '#/properties/done',
+    },
+    {
+      type: 'Control',
+      scope: '#/properties/name',
+    },
+    {
+      type: 'HorizontalLayout',
+      elements: [
+        {
+          type: 'Control',
+          scope: '#/properties/due_date',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/recurrence',
+        },
+      ],
+    },
+  ],
+};
+const initialData = {};
+export default function App() {
+  const [data, setData] = useState(initialData);
+  return (
+    <JsonForms
+      schema={schema}
+      uischema={uischema}
+      data={data}
+      renderers={vanillaRenderers}
+      cells={vanillaCells}
+      onChange={({ data }) => setData(data)}
+    />
+  );
+}
